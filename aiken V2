@@ -1,0 +1,118 @@
+wifi_name="AIKEN1"
+wifi_password="aikentest11"
+#wifi_name="INFRA-TECHNOLOGY-AP"
+#wifi_password="IT@Only321"
+
+# Text formating
+RED='\033[1;31m'
+GREEN='\033[1;32m'
+BLUE='\033[1;34m'
+YELLOW='\033[1;33m'
+PURPLE='\033[1;35m'
+CYAN='\033[1;36m'
+NC='\033[0m'
+
+
+arch_type=$(uname -m)
+
+if [ "$arch_type" == "arm64" ]; then
+    wifi_interface="en1"  
+else
+    wifi_interface="en0"  
+fi
+
+wifi_status=$(networksetup -getairportpower $wifi_interface | awk '{print $4}')
+
+if [ "$wifi_status" = "On" ]; then
+echo  "${BLUE}                    -----------------------                       ${NC}"
+echo "${BLUE}*-------------------* Mac Auditor Aiken 1*---------------------*${NC}"
+echo "${BLUE}                    -----------------------                       ${NC}"
+    echo "==================================================================="
+   echo "this script created by Eng : Ahmed Saifeldeen for more information"
+    echo "visit http://ahmedsaif.netlify.app"
+    echo "==================================================================="
+
+    echo "                              "
+    echo "Wi-Fi is already turned on."
+else
+    echo "Wi-Fi is turned off. Turning it on..."
+    networksetup -setairportpower $wifi_interface on
+    if [ $? -eq 0 ]; then
+        echo "${GREEN}Wi-Fi turned on successfully.${NC}"
+    else
+        echo "${RED}Failed to turn on Wi-Fi.${NC}"
+        exit 1
+    fi
+fi
+
+sleep 3
+
+
+connected_wifi=$(networksetup -getairportnetwork $wifi_interface | awk -F': ' '{print $2}')
+
+if [ "$connected_wifi" = "$wifi_name" ]; then
+    echo "${GREEN}Already connected to $wifi_name.${NC}"
+else
+    echo "                              "
+    echo "Not connected to $wifi_name. Connecting..."
+    echo "                              "
+
+    networksetup -setairportnetwork $wifi_interface "$wifi_name" "$wifi_password"
+    exit_status=$?
+    connected_wifi=$(networksetup -getairportnetwork $wifi_interface | awk '{print $4}')
+
+    if [ $exit_status -eq 0 ] && [ "$connected_wifi" = "$wifi_name" ]; then
+    echo "                              "
+        echo "${GREEN}Wi-Fi network set successfully.${NC}"
+    echo "                              "
+    else
+        echo "${RED}Error setting Wi-Fi network. Exit status: $exit_status${NC}"
+        exit 1
+    fi
+fi
+
+
+    sleep 3
+
+
+IP_ADDRESS="128.0.128.101"
+
+DMG_URL="http://128.0.128.101/mca.dmg"
+
+ping -c 1 $IP_ADDRESS > /dev/null
+if [ $? -ne 0 ]; then
+    echo "${RED}Error: Unable to ping $IP_ADDRESS. Check your network connection.${NC}"
+    exit 1
+fi
+
+hdiutil attach $DMG_URL
+if [ $? -ne 0 ]; then
+    echo "${RED}Error: Unable to mount the DMG from $DMG_URL.${NC}"
+    exit 1
+fi
+
+MOUNT_POINT="/Volumes/mca"
+MCA_EXECUTABLE="$MOUNT_POINT/mca"
+if [ ! -d "$MOUNT_POINT" ] || [ ! -x "$MCA_EXECUTABLE" ]; then
+    echo "Error: Volume or mca executable not found."
+    exit 1
+fi
+
+
+    echo "*-------------------------------------------------------------*"
+    echo "                                                           "
+        echo "${GREEN}Opening MACAUDITOR application...${NC}"
+    echo "                                                           "
+    echo "*-------------------------------------------------------------*"
+
+    echo "                                                           "
+
+sudo "$MCA_EXECUTABLE" 
+
+    else
+    echo "*-------------------------------------------------------------*"
+    echo "                                                           "
+    echo "Error: MCA application not Mounted on the desktop."
+     echo "                                                           "
+    echo "*-------------------------------------------------------------*"
+    fi
